@@ -2,7 +2,7 @@
 	"name": "slack",
 	"productName": "Slack",
 	"desktopName": "net.donnybeelo.Slack.desktop",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "An unofficial Slack desktop client built with Electron.",
 	"author": "Daniel Elia <d.elia@outlook.com> (https://donnybeelo.net)",
 	"license": "ISC",
@@ -41,7 +41,8 @@
 				"--filesystem=xdg-download",
 				"--talk-name=org.freedesktop.Notifications",
 				"--talk-name=org.kde.StatusNotifierWatcher",
-				"--talk-name=com.canonical.Unity"
+				"--talk-name=com.canonical.Unity",
+				"--own-name=org.freedesktop.StatusNotifierItem-3-1"
 			]
 		}
 	},
