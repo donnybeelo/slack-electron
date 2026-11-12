@@ -1,0 +1,53 @@
+{
+	"name": "slack",
+	"productName": "Slack",
+	"desktopName": "net.donnybeelo.Slack.desktop",
+	"version": "1.0.0",
+	"description": "An unofficial Slack desktop client built with Electron.",
+	"author": "Daniel Elia <d.elia@outlook.com> (https://donnybeelo.net)",
+	"license": "ISC",
+	"main": "./src/main.js",
+	"type": "module",
+	"scripts": {
+		"start": "electron .",
+		"dist:linux": "electron-builder --linux --x64 --publish=never",
+		"publish": "scripts/publish.sh"
+	},
+	"build": {
+		"appId": "net.donnybeelo.Slack",
+		"npmRebuild": false,
+		"files": ["src/**", "assets/**", "package.json"],
+		"asarUnpack": ["assets/**"],
+		"protocols": [{ "name": "Slack", "schemes": ["slack"] }],
+		"linux": {
+			"icon": "./assets/slack-512x512.png",
+			"category": "Network",
+			"target": ["flatpak"]
+		},
+		"flatpak": {
+			"runtimeVersion": "26.08",
+			"baseVersion": "26.08",
+			"branch": "stable",
+			"files": [
+				["assets/net.donnybeelo.Slack.metainfo.xml", "/share/metainfo/net.donnybeelo.Slack.metainfo.xml"]
+			],
+			"finishArgs": [
+				"--socket=wayland",
+				"--socket=fallback-x11",
+				"--share=ipc",
+				"--device=all",
+				"--socket=pulseaudio",
+				"--share=network",
+				"--filesystem=xdg-download",
+				"--talk-name=org.freedesktop.Notifications",
+				"--talk-name=org.kde.StatusNotifierWatcher",
+				"--talk-name=com.canonical.Unity"
+			]
+		}
+	},
+	"trustedDependencies": ["electron"],
+	"devDependencies": {
+		"electron": "^43.2.0",
+		"electron-builder": "^26.15.3"
+	}
+}

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>net.donnybeelo.Slack</id>
+  <name>Slack</name>
+  <summary>Unofficial Slack desktop client</summary>
+  <developer id="net.donnybeelo">
+    <name>Daniel Elia</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>ISC</project_license>
+  <description>
+    <p>
+      An unofficial desktop client for Slack, built with Electron. Adds GNOME-style
+      window controls, a tray icon, unread badges, browser sign-in and a
+      background start mode.
+    </p>
+    <p>Not affiliated with or endorsed by Slack Technologies or Salesforce.</p>
+  </description>
+  <launchable type="desktop-id">net.donnybeelo.Slack.desktop</launchable>
+  <url type="homepage">https://donnybeelo.net</url>
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-chat">intense</content_attribute>
+    <content_attribute id="social-audio">intense</content_attribute>
+    <content_attribute id="social-info">intense</content_attribute>
+  </content_rating>
+  <releases>
+    <release version="1.0.0" date="2026-11-12"/>
+  </releases>
+</component>
