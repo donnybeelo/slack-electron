@@ -2,7 +2,7 @@
 	"name": "slack",
 	"productName": "Slack",
 	"desktopName": "net.donnybeelo.Slack.desktop",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "An unofficial Slack desktop client built with Electron.",
 	"author": "Daniel Elia <d.elia@outlook.com> (https://donnybeelo.net)",
 	"license": "ISC",
@@ -29,7 +29,8 @@
 			"baseVersion": "26.08",
 			"branch": "stable",
 			"files": [
-				["assets/net.donnybeelo.Slack.metainfo.xml", "/share/metainfo/net.donnybeelo.Slack.metainfo.xml"]
+				["assets/net.donnybeelo.Slack.metainfo.xml", "/share/metainfo/net.donnybeelo.Slack.metainfo.xml"],
+				["assets/slack-symbolic.svg", "/share/icons/hicolor/symbolic/apps/net.donnybeelo.Slack-symbolic.svg"]
 			],
 			"finishArgs": [
 				"--socket=wayland",
