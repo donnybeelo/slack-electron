@@ -17,7 +17,7 @@
     <p>Not affiliated with or endorsed by Slack Technologies or Salesforce.</p>
   </description>
   <launchable type="desktop-id">net.donnybeelo.Slack.desktop</launchable>
-  <url type="homepage">https://donnybeelo.net</url>
+  <url type="homepage">https://github.com/donnybeelo/slack-electron</url>
   <content_rating type="oars-1.1">
     <content_attribute id="social-chat">intense</content_attribute>
     <content_attribute id="social-audio">intense</content_attribute>
