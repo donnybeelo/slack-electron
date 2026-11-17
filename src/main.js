@@ -10,7 +10,6 @@ const PORTAL = ["--session", "--dest", "org.freedesktop.portal.Desktop", "--obje
 const SSB_REDIR = "redir=%2Fssb%2Fsignin_redirect%3Frevoke_parent_session_if_ssb%3D1%26is_ssb_browser_signin%3D1";
 const SLACK_HOST = /^https:\/\/([a-z0-9-]+\.)*slack\.com(\/|$)/;
 const SLACK_SIGNIN = /^https:\/\/([a-z0-9-]+\.)*slack\.com\/(signin\/oauth\/[^/?]+\/start|sso\/saml)/;
-const WINDOW_LAYOUT = ["org.gnome.desktop.wm.preferences", "button-layout"];
 
 app.setPath("userData", path.join(app.getPath("appData"), APP_ID));
 app.setDesktopName(`${APP_ID}.desktop`);
@@ -24,6 +23,31 @@ if (!app.requestSingleInstanceLock()) {
 const STATE = path.join(app.getPath("userData"), "window.json");
 const startHidden = process.argv.some((a) => a === "-u" || a === "--background");
 let win, tray, quitting = false, trayIcon = "tray-rest";
+const overlay = { color: "rgba(0, 0, 0, 0)" };
+
+// Black or white window-button symbols, from the average luminance of the
+// page pixels under the buttons
+async function updateSymbolColor() {
+	if (!win.isVisible() || win.isMinimized()) return;
+	const [width] = win.getContentSize();
+	const strip = 140;
+	const image = await win.webContents
+		.capturePage({ x: Math.max(0, width - strip), y: 0, width: Math.min(strip, width), height: overlay.height ?? 40 })
+		.catch(() => null);
+	const bitmap = image?.toBitmap();
+	if (!bitmap?.length) return;
+	const linear = (v) => ((v /= 255) <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+	let total = 0, samples = 0;
+	for (let i = 0; i < bitmap.length; i += 16) {
+		total += 0.0722 * linear(bitmap[i]) + 0.7152 * linear(bitmap[i + 1]) + 0.2126 * linear(bitmap[i + 2]);
+		samples++;
+	}
+	// White symbols unless the background is light
+	const symbolColor = total / samples > 0.4 ? "#000000" : "#ffffff";
+	if (symbolColor === overlay.symbolColor) return;
+	overlay.symbolColor = symbolColor;
+	win.setTitleBarOverlay(overlay);
+}
 
 const showWindow = () => {
 	if (win.isMinimized()) win.restore();
@@ -46,13 +70,9 @@ function loadState() {
 
 function saveState() {
 	const { width, height } = win.getNormalBounds();
-	fs.writeFileSync(STATE, JSON.stringify({ width, height, maximized: win.isMaximized() }));
+	fs.writeFileSync(STATE, JSON.stringify({ width, height, maximized: win.isMaximized(), overlayHeight: overlay.height }));
 }
 
-function buttonLayout(value) {
-	const right = value.match(/'([^']*)'/)?.[1].split(":")[1] ?? "";
-	return right.split(",").filter((b) => ["minimize", "maximize", "close"].includes(b));
-}
 
 function faviconState(image) {
 	const { width, height } = image.getSize();
@@ -134,9 +154,10 @@ function contextMenu(params) {
 
 function createWindow() {
 	const state = loadState();
+	if (state.overlayHeight) overlay.height = state.overlayHeight;
 	win = new BrowserWindow({
 		width: state.width, height: state.height, minWidth: 500, minHeight: 400,
-		frame: false, show: false, title: "Slack",
+		titleBarStyle: "hidden", titleBarOverlay: overlay, show: false, title: "Slack",
 		icon: path.join(ASSETS, "slack-512x512.png"),
 		backgroundColor: nativeTheme.shouldUseDarkColors ? "#1a1d21" : "#ffffff",
 		webPreferences: { preload: path.join(import.meta.dirname, "preload.cjs"), spellcheck: true },
@@ -153,8 +174,6 @@ function createWindow() {
 		e.preventDefault();
 		win.hide();
 	});
-	for (const event of ["maximize", "unmaximize"])
-		win.on(event, () => contents.send("maximized", win.isMaximized()));
 
 	contents.on("page-favicon-updated", (_e, favicons) => setUnread(favicons[0]));
 	contents.on("context-menu", (_e, params) => contextMenu(params));
@@ -223,20 +242,12 @@ app.whenReady().then(() => {
 	createWindow();
 	handleArgs(process.argv);
 
-	const icons = Object.fromEntries(["close", "minimize", "maximize", "restore"].map((name) => [name,
-		`data:image/svg+xml;base64,${fs.readFileSync(path.join(ASSETS, `window-${name}-symbolic.svg`)).toString("base64")}`]));
-	let layout = [];
-	watchSetting(...WINDOW_LAYOUT, (value) => {
-		layout = buttonLayout(value);
-		win.webContents.send("layout", layout);
-	});
-	ipcMain.handle("controls", () => ({ layout, icons, maximized: win.isMaximized() }));
-	ipcMain.on("window", (_e, action) => {
-		if (action === "minimize") win.minimize();
-		else if (action === "maximize") win.isMaximized() ? win.unmaximize() : win.maximize();
-		else if (action === "close") win.close();
-	});
 	ipcMain.on("show", showWindow);
+	ipcMain.on("title-bar-height", (_e, height) => {
+		overlay.height = Math.round(height * win.webContents.getZoomFactor());
+		win.setTitleBarOverlay(overlay);
+	});
+	setInterval(updateSymbolColor, 250);
 
 	tray = new Tray(path.join(ASSETS, "tray-rest.png"));
 	tray.setToolTip("Slack");
